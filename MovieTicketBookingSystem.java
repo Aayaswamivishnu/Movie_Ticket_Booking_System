@@ -1,166 +1,251 @@
 import java.util.*;
 
-class Movie {
-    private String title;
-    private int availableSeats;
-    private double ticketPrice;
-    private List<Reservation> reservations;
+class User {
+    private final String username;
+    private final String password;
 
-    public Movie(String title, int availableSeats, double ticketPrice) {
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+}
+
+class UserManager {
+    private final Map<String, User> users;
+
+    public UserManager() {
+        users = new HashMap<>();
+    }
+
+    public void registerUser(String username, String password) {
+        users.put(username, new User(username, password));
+    }
+
+    public boolean loginUser(String username, String password) {
+        User user = users.get(username);
+        return user != null && user.getPassword().equals(password);
+    }
+}
+
+class Movie {
+    private final String title;
+
+    public Movie(String title) {
         this.title = title;
-        this.availableSeats = availableSeats;
-        this.ticketPrice = ticketPrice;
-        this.reservations = new ArrayList<>();
     }
 
     public String getTitle() {
         return title;
     }
+}
 
-    public int getAvailableSeats() {
-        return availableSeats;
+class Seat {
+    private final int seatNumber;
+    private final int row;
+    private final int column;
+    private boolean isAvailable;
+
+    public Seat(int seatNumber, int row, int column) {
+        this.seatNumber = seatNumber;
+        this.row = row;
+        this.column = column;
+        this.isAvailable = true;
     }
 
-    public double getTicketPrice() {
-        return ticketPrice;
+    public int getSeatNumber() {
+        return seatNumber;
     }
 
-    public List<Reservation> getReservations() {
-        return reservations;
+    public int getRow() {
+        return row;
     }
 
-    public void bookSeats(int numSeats, String userName) {
-        if (numSeats <= availableSeats) {
-            availableSeats -= numSeats;
-            Reservation reservation = new Reservation(userName, numSeats, ticketPrice);
-            reservations.add(reservation);
-            System.out.println("Tickets booked successfully!");
-        } else {
-            System.out.println("Not enough seats available.");
-        }
+    public int getColumn() {
+        return column;
     }
 
-    public void showMovieDetails() {
-        System.out.println("Movie: " + title);
-        System.out.println("Available Seats: " + availableSeats);
-        System.out.println("Ticket Price: $" + ticketPrice);
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void book() {
+        isAvailable = false;
     }
 }
 
-class Reservation {
-    private String userName;
-    private int numSeats;
-    private double totalPrice;
+class SeatSelection {
+    private final List<Seat> seats;
 
-    public Reservation(String userName, int numSeats, double ticketPrice) {
-        this.userName = userName;
-        this.numSeats = numSeats;
-        this.totalPrice = numSeats * ticketPrice;
+    public SeatSelection(List<Seat> seats) {
+        this.seats = seats;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public int getNumSeats() {
-        return numSeats;
-    }
-
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-}
-
-class Theater {
-    private List<Movie> movies;
-
-    public Theater() {
-        movies = new ArrayList<>();
-    }
-
-    public void addMovie(Movie movie) {
-        movies.add(movie);
-    }
-
-    public List<Movie> getMovies() {
-        return movies;
-    }
-
-    public Movie getMovieByTitle(String title) {
-        for (Movie movie : movies) {
-            if (movie.getTitle().equals(title)) {
-                return movie;
+    public void displayAvailableSeats() {
+        System.out.println("\nAvailable Seats:");
+        for (Seat seat : seats) {
+            if (seat.isAvailable()) {
+                System.out.println("Seat Number: " + seat.getSeatNumber() +
+                        ", Row: " + seat.getRow() +
+                        ", Column: " + seat.getColumn());
             }
         }
-        return null;
+    }
+
+    public boolean bookSeat(int seatNumber) {
+        for (Seat seat : seats) {
+            if (seat.getSeatNumber() == seatNumber && seat.isAvailable()) {
+                seat.book();
+                System.out.println("Seat booked successfully!");
+                return true;
+            }
+        }
+        System.out.println("Seat not available or invalid seat number.");
+        return false;
     }
 }
 
-class User {
-    private String userName;
+class Booking {
+    private final String username;
+    private final Movie movie;
+    private final Seat seat;
+    private final long timestamp;
 
-    public User(String userName) {
-        this.userName = userName;
+    public Booking(String username, Movie movie, Seat seat) {
+        this.username = username;
+        this.movie = movie;
+        this.seat = seat;
+        this.timestamp = System.currentTimeMillis();
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
+    }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    public Seat getSeat() {
+        return seat;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+}
+
+class BookingHistory {
+    private final List<Booking> bookings;
+
+    public BookingHistory() {
+        bookings = new ArrayList<>();
+    }
+
+    public void addBooking(String username, Movie movie, Seat seat) {
+        bookings.add(new Booking(username, movie, seat));
+    }
+
+    public List<Booking> getBookings() {
+        return bookings;
     }
 }
 
 public class MovieTicketBookingSystem {
     public static void main(String[] args) {
-        Theater theater = new Theater();
-        theater.addMovie(new Movie("Movie A", 100, 10.0));
-        theater.addMovie(new Movie("Movie B", 150, 12.0));
-
         Scanner scanner = new Scanner(System.in);
-        List<User> users = new ArrayList<>();
 
-        while (true) {
-            System.out.println("\nAvailable Movies:");
-            List<Movie> movies = theater.getMovies();
-            for (int i = 0; i < movies.size(); i++) {
-                System.out.println((i + 1) + ". " + movies.get(i).getTitle());
-            }
+        // SignUp
+        System.out.print("SignUp to start your booking --->");
+        UserManager userManager = new UserManager();
+        System.out.print("\nEnter username: ");
+        String username = scanner.nextLine();
 
-            System.out.print("Enter the movie number (0 to exit): ");
-            int choice = scanner.nextInt();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+        userManager.registerUser(username, password);
+        System.out.println("User registered successfully.");
 
-            if (choice == 0) {
-                break;
-            }
+        // Login
+        System.out.println();
+        System.out.println("Login to your account --->");
+        System.out.print("Enter your username to login: ");
+        String loginUsername = scanner.nextLine();
+        System.out.print("Enter your password to login: ");
+        String loginPassword = scanner.nextLine();
 
-            if (choice >= 1 && choice <= movies.size()) {
-                Movie selectedMovie = movies.get(choice - 1);
-                selectedMovie.showMovieDetails();
-                System.out.print("Enter your username: ");
-                String userName = scanner.next();
-
-                User user = findUserByUsername(users, userName);
-
-                if (user == null) {
-                    user = new User(userName);
-                    users.add(user);
-                }
-
-                System.out.print("Enter the number of seats to book: ");
-                int numSeats = scanner.nextInt();
-                selectedMovie.bookSeats(numSeats, userName);
-            } else {
-                System.out.println("Invalid choice. Please try again.");
-            }
+        if (userManager.loginUser(loginUsername, loginPassword)) {
+            System.out.println("Login successful. Welcome, " + loginUsername + "!");
+        } else {
+            System.out.println("Invalid username or password. Login failed.");
+            System.exit(0);
         }
 
-        System.out.println("Thank you for using the Movie Ticket Booking System!");
-    }
+        // Available Movies
+        List<Movie> movies = new ArrayList<>();
+        movies.add(new Movie("Jailer"));
+        movies.add(new Movie("Leo"));
+        movies.add(new Movie("Pathaan"));
 
-    private static User findUserByUsername(List<User> users, String username) {
-        for (User user : users) {
-            if (user.getUserName().equals(username)) {
-                return user;
-            }
+        // Movie Selection
+        System.out.println("\nAvailable Movies:");
+        for (int i = 0; i < movies.size(); i++) {
+            System.out.println((i + 1) + ". " + movies.get(i).getTitle());
         }
-        return null;
+        System.out.print("Enter the number of the movie you want to watch: ");
+        int selectedMovieIndex = scanner.nextInt();
+        Movie selectedMovie = movies.get(selectedMovieIndex - 1);
+
+        // Seat Selection
+        List<Seat> seats = new ArrayList<>();
+        // Create seats and add them to the list
+        System.out.println("\nRow 1 Starts from the Screen.");
+        seats.add(new Seat(1, 1, 1));
+        seats.add(new Seat(2, 1, 2));
+        seats.add(new Seat(3, 2, 2));
+        seats.add(new Seat(4, 2, 3));
+        seats.add(new Seat(5, 3, 3));
+        seats.add(new Seat(6, 3, 4));
+        seats.add(new Seat(7, 4, 1));
+        seats.add(new Seat(8, 4, 4));
+
+        SeatSelection seatSelection = new SeatSelection(seats);
+
+        // Display available seats
+        seatSelection.displayAvailableSeats();
+
+        // Get user input for seat selection
+        System.out.print("Enter the seat number you want to book: ");
+        int selectedSeatNumber = scanner.nextInt();
+
+        // Book the selected seat
+        seatSelection.bookSeat(selectedSeatNumber);
+
+        // Add the booking to the booking history
+        BookingHistory bookingHistory = new BookingHistory();
+        bookingHistory.addBooking(loginUsername, selectedMovie, seats.get(selectedSeatNumber - 1));
+
+        // Display updated available seats
+        seatSelection.displayAvailableSeats();
+
+        // Display Booking History
+        System.out.println("\nBooking History:");
+        List<Booking> userBookings = bookingHistory.getBookings();
+        for (Booking userBooking : userBookings) {
+            System.out.println("Username: " + userBooking.getUsername());
+            System.out.println("Movie: " + userBooking.getMovie().getTitle());
+            System.out.println("Seat Number: " + userBooking.getSeat().getSeatNumber() +
+                    ", Row: " + userBooking.getSeat().getRow() +
+                    ", Column: " + userBooking.getSeat().getColumn());
+            System.out.println("Booking Time: " + userBooking.getTimestamp());
+            System.out.println();
+        }
     }
 }
